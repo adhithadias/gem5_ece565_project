@@ -15,7 +15,7 @@ DIPRP::invalidate(const std::shared_ptr<ReplacementData>& replacement_data)
 const
 {
     // Reset last touch timestamp
-    std::static_pointer_cast<LRUReplData>(
+    std::static_pointer_cast<DIPReplData>(
         replacement_data)->lastTouchTick = Tick(0);
 }
 
@@ -23,7 +23,7 @@ void
 DIPRP::touch(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
     // Update last touch timestamp
-    std::static_pointer_cast<LRUReplData>(
+    std::static_pointer_cast<DIPReplData>(
         replacement_data)->lastTouchTick = curTick();
 }
 
@@ -31,7 +31,7 @@ void
 DIPRP::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
     // Set last touch timestamp
-    std::static_pointer_cast<LRUReplData>(
+    std::static_pointer_cast<DIPReplData>(
         replacement_data)->lastTouchTick = curTick();
 }
 
