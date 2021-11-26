@@ -1,7 +1,12 @@
 #ifndef __MEM_CACHE_REPLACEMENT_POLICIES_DIP_RP_HH__
 #define __MEM_CACHE_REPLACEMENT_POLICIES_DIP_RP_HH__
 
+#include <memory>
+
+#include "base/compiler.hh"
+#include "base/statistics.hh"
 #include "mem/cache/replacement_policies/base.hh"
+#include "mem/cache/tags/dueling.hh"
 
 struct DIPRPParams;
 
@@ -9,16 +14,32 @@ class DIPRP : public BaseReplacementPolicy
 {
     protected:
         /** DIP-specific implementation of replacement data. */
-        struct DIPReplData : ReplacementData
+        struct DIPReplData : ReplacementData, Dueler
         {
             /** Tick on which the entry was last touched. */
             Tick lastTouchTick;
+            std::shared_ptr<ReplacementData> replacementData1;
+            std::shared_ptr<ReplacementData> replacementData2;
 
             /**
             * Default constructor. Invalidate data.
             */
-            DIPReplData() : lastTouchTick(0) {}
+            DIPReplData(
+                const std::shared_ptr<ReplacementData>& replacement_data_1,
+                const std::shared_ptr<ReplacementData>& replacement_data_2)
+            :   ReplacementData(), Dueler(),
+                lastTouchTick(0), replacementData1(replacement_data_1),
+                replacementData2(replacement_data_2)
+            {}
         };
+
+        BaseReplacementPolicy* const replacementPolicy1;
+        BaseReplacementPolicy* const replacementPolicy2;
+        const DIPRPParams* params;
+
+        mutable DuelingMonitor duelingMonitor;
+
+
     public:
         /** Convenience typedef. */
         typedef DIPRPParams Params;
@@ -26,6 +47,7 @@ class DIPRP : public BaseReplacementPolicy
         /**
         * Construct and initiliaze this replacement policy.
         */
+        // PARAMS(DIPRP);
         DIPRP(const Params *p);
 
         /**

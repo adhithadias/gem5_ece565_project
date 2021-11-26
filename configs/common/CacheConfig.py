@@ -48,22 +48,35 @@ from m5.objects import *
 from common.Caches import *
 from common import ObjectList
 
-def set_cache_repl_policy(options, cache):
-    if (options.cache_repl == "LRURP"):
+def set_cache_repl_policy(options, cache_repl_policy, cache):
+    if (cache_repl_policy == "LRURP"):
         cache.replacement_policy = LRURP()
-    elif (options.cache_repl == "LIPRP"):
+    elif (cache_repl_policy == "LIPRP"):
         cache.replacement_policy = LIPRP()
-    elif (options.cache_repl == "BIPRP"):
-        cache.replacement_policy = BIPRP()
-    elif (options.cache_repl == "DIPRP"):
-        cache.replacement_policy = DIPRP()
-    elif (options.cache_repl == "LFURP"):
+    elif (cache_repl_policy == "BIPRP"):
+        cache.replacement_policy = BIPRP(
+            btp=options.cache_btp
+        )
+    elif (cache_repl_policy == "DIPRP"):
+        print("initializing DIPRP cache with settings \n constituency:",
+              options.cache_constituency_size, ", team_size: ",
+              options.cache_team_size)
+        cache.replacement_policy = DIPRP(
+            replacement_policy_1=LRURP(),
+            replacement_policy_2=BIPRP(
+                btp=options.cache_btp
+            ),
+            constituency_size=options.cache_constituency_size,
+            team_size=options.cache_team_size
+        )
+        # cache.replacement_policy = DIPRP()
+    elif (cache_repl_policy == "LFURP"):
         cache.replacement_policy = LRURP()
-    elif (options.cache_repl == "FIFORP"):
+    elif (cache_repl_policy == "FIFORP"):
         cache.replacement_policy = FIFORP()
-    elif (options.cache_repl == "MRURP"):
+    elif (cache_repl_policy == "MRURP"):
         cache.replacement_policy = MRURP()
-    elif (options.cache_repl == "RandomRP"):
+    elif (cache_repl_policy == "RandomRP"):
         cache.replacement_policy = RandomRP()
     else:
         print("Other cache replacement policies "
@@ -125,7 +138,7 @@ def config_cache(options, system):
         system.l2 = l2_cache_class(clk_domain=system.cpu_clk_domain,
                                    size=options.l2_size,
                                    assoc=options.l2_assoc)
-        set_cache_repl_policy(options, system.l2)
+        set_cache_repl_policy(options, options.cache_repl, system.l2)
 
         system.tol2bus = L2XBar(clk_domain = system.cpu_clk_domain)
         system.l2.cpu_side = system.tol2bus.master
@@ -146,10 +159,10 @@ def config_cache(options, system):
         if options.caches:
             icache = icache_class(size=options.l1i_size,
                                   assoc=options.l1i_assoc)
-            set_cache_repl_policy(options, icache)
+            set_cache_repl_policy(options, "LRURP", icache)
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc)
-            set_cache_repl_policy(options, dcache)
+            set_cache_repl_policy(options, "LRURP",dcache)
 
             # If we have a walker cache specified, instantiate two
             # instances here

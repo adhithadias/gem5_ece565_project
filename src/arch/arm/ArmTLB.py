@@ -63,7 +63,7 @@ class ArmTLB(BaseTLB):
     cxx_class = 'ArmISA::TLB'
     cxx_header = "arch/arm/tlb.hh"
     sys = Param.System(Parent.any, "system object parameter")
-    size = Param.Int(64, "TLB size")
+    size = Param.Int(256, "TLB size")
     walker = Param.ArmTableWalker(ArmTableWalker(), "HW Table walker")
     is_stage2 = Param.Bool(False, "Is this a stage 2 TLB?")
 

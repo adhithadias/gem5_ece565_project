@@ -2,21 +2,17 @@
 
 declare -a l2size=("1MB")
 declare -a repl=("BIPRP" "DIPRP" "LIPRP" "MRURP" "LRURP")
-declare -a benchmark=("mcf" "bzip2" "lbm" "namd" "gobmk" "sjeng" "namd")
+declare -a benchmark=("mcf" "bzip2" "lbm" "namd" "gobmk" "sjeng")
 
 for bench in "${benchmark[@]}"; do
 	for policy in "${repl[@]}"; do
 		for size in "${l2size[@]}"; do
-			# ./build/X86/gem5.opt -d verifySHIP/cacheSensitivity/$bench/$pol/$size \
-            # configs/spec2k6/run.py -b $bench --maxinsts=250000000 --cpu-type=DerivO3CPU \
-            # --caches --l2cache --l3cache \
-            # --fast-forward=1000000000 --warmup-insts=50000000 --standard-switch=50000000 \
-            # --caches --l2cache --l3cache --l3_repl=$pol --l3_size=$size &
 
+            SECONDS=0
             echo " "
             printf "start timestamp: %s\n" "$(date)"
-            echo "running sim for benchmark: " $bench " , size: " $size ", cache replacement policy: " $policy " ..."
-            echo " "
+            echo "running sim for benchmark:" $bench ", size:" $size ", cache replacement policy:" $policy "..."
+            echo "------------------------------------------------------------------------"
 
             # real simulation
             
@@ -38,7 +34,8 @@ for bench in "${benchmark[@]}"; do
             --cache_constituency_size=32 \
             --maxinsts=250000000 \
             --fast-forward=1000000000 --warmup-insts=50000000 \
-            --standard-switch=50000000 > a_verify_dip/$bench/$size/$pol/out.txt
+            --standard-switch=50000000 \
+            &> a_verify_dip/$bench/$size/$pol/out.txt
 
             # small number of instructions to check 
 
@@ -60,12 +57,16 @@ for bench in "${benchmark[@]}"; do
             # --cache_constituency_size=32 \
             # --maxinsts=25000 \
             # --fast-forward=10000 --warmup-insts=50000 \
-            # --standard-switch=50000 > a_verify_dip/$bench/$size/$pol/out.txt
+            # --standard-switch=50000 \
+            # &> a_verify_dip/$bench/$size/$pol/out.txt
 
+            duration=$SECONDS
             echo " "
-            echo "sim completed for benchmark: " $bench " , size: " $size ", cache replacement policy: " $policy
+            echo "sim completed for benchmark:" $bench ", size:" $size ", cache replacement policy:" $policy
             printf "end timestamp: %s\n" "$(date)"
-            echo " "
+            echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
+            echo "------------------------------------------------------------------------------------------------------------"
+            echo "------------------------------------------------------------------------------------------------------------"
 
 		done
 	done

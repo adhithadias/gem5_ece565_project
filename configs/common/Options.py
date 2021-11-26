@@ -138,6 +138,14 @@ def addNoISAOptions(parser):
     parser.add_option("--cache_repl", type="string", default="LRURP",
                       help="set cache replacement policy. choose from "
                       "LRURP, BIPRP, DIPRP")
+    parser.add_option("--cache_constituency_size", type="int", default=32,
+                      help="set dynamic insertion policy cache constituency "
+                      "size")
+    parser.add_option("--cache_team_size", type="int", default=32,
+                      help="set dynamic insertion policy cache team size")
+    parser.add_option("--cache_btp", type="int", default=3,
+                      help="Percentage of blocks to be inserted as MRU "
+                      "for bimodal insertion policy")
 
     # Enable Ruby
     parser.add_option("--ruby", action="store_true")

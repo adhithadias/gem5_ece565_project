@@ -33,11 +33,6 @@ class BaseReplacementPolicy(SimObject):
     abstract = True
     cxx_header = "mem/cache/replacement_policies/base.hh"
 
-class DIPRP(BaseReplacementPolicy):
-    type = 'DIPRP'
-    cxx_class = 'DIPRP'
-    cxx_header = "mem/cache/replacement_policies/dip_rp.hh"
-
 class FIFORP(BaseReplacementPolicy):
     type = 'FIFORP'
     cxx_class = 'FIFORP'
@@ -66,6 +61,20 @@ class BIPRP(LRURP):
 
 class LIPRP(BIPRP):
     btp = 0
+
+class DIPRP(BaseReplacementPolicy):
+    type = 'DIPRP'
+    cxx_class = 'DIPRP'
+    cxx_header = "mem/cache/replacement_policies/dip_rp.hh"
+
+    replacement_policy_1 = Param.BaseReplacementPolicy(
+        LRURP(), "Sub-replacement policy A")
+    replacement_policy_2 = Param.BaseReplacementPolicy(
+        BIPRP(btp=3), "Sub-replacement policy B")
+    constituency_size = Param.Unsigned(
+        32, "The size of a region containing one sample")
+    team_size = Param.Unsigned(
+        16, "Number of entries in a sampling set that belong to a team")
 
 class MRURP(BaseReplacementPolicy):
     type = 'MRURP'
