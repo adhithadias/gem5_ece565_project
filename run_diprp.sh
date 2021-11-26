@@ -3,9 +3,10 @@
 # configs/spec2k6/run.py is same as syscall emulation
 # it contains spec2006 benchmarks that is added by Tim
 
-./build/ARM/gem5.opt --debug-flags=CacheRepl -d diprp_out \
+# ./build/ARM/gem5.opt --debug-flags=CacheRepl -d a_diprp_out \
+./build/ARM/gem5.opt -d a_diprp_out \
 configs/spec2k6/run.py \
---benchmark=bzip2 \
+--benchmark=mcf \
 --maxinsts=1000 \
 --cpu-type=O3_ARM_v7a_3 \
 --caches --l2cache \
@@ -15,9 +16,12 @@ configs/spec2k6/run.py \
 --l2_size='1024kB' \
 --l1d_assoc=2 \
 --l1i_assoc=2 \
---l2_assoc=8 \
+--l2_assoc=16 \
 --cacheline_size=64 \
---cache_repl='DIPRP'
+--cache_repl='DIPRP' \
+--cache_team_size=16 \
+--cache_constituency_size=64 \
+--mem-type='DDR3_1600_8x8'
 
 # TODO
 
@@ -30,4 +34,4 @@ configs/spec2k6/run.py \
 # Branch misprediction penalty - 15 cycles.
 # CPU -- out of order issue queue 40 entries issue width - 4 Ld/st Q (aka LSQ) size 32 entries 32 entry return address stackabout 8K entries in branch predictor tables
 
-echo "BIP RP job completed"
+echo "DIP RP job completed"
