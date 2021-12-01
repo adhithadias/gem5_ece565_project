@@ -1,5 +1,6 @@
 #include "mem/cache/tags/dueling.hh"
 
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -42,7 +43,8 @@ DuelingMonitor::DuelingMonitor(std::size_t constituency_size,
     teamSize(team_size), lowThreshold(low_threshold),
     highThreshold(high_threshold), selector(num_bits), regionCounter(0),
     winner(true), assoc(assoc), blockOffset(block_offset),
-    setOffset(set_offset), numSets(num_sets), pselLogTick(0)
+    setOffset(set_offset), numSets(num_sets), pselLogTick(0),
+    selectorLogCount(0)
 {
     fatal_if(constituencySize < (NUM_DUELERS * teamSize),
         "There must be at least team size entries per team in a constituency");
@@ -112,7 +114,9 @@ DuelingMonitor::sample(const Addr addr) {
     // std::cout << std::dec;
 
     Tick t = curTick();
-    if (t-pselLogTick > 100000000) {
+    uint64_t s = selector.getCounter();
+    if (t-pselLogTick > 100000000 ||
+        std::abs(s-selectorLogCount) > 20) {
         // std::cout << t << ", " << selector.getCounter() << std::endl;
         std::cout
             << t
@@ -125,6 +129,7 @@ DuelingMonitor::sample(const Addr addr) {
             << std::endl
         ;
         pselLogTick = t;
+        selectorLogCount = s;
     }
 
     // PSEL counter is the Policy Selector
