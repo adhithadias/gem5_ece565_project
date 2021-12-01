@@ -167,13 +167,14 @@ class BaseSetAssoc : public BaseTags
                          const std::size_t size,
                          std::vector<CacheBlk*>& evict_blks) override
     {
+        // std::cout << "findVictim inside base_set_assoc.hh\n";
         // Get possible entries to be victimized
         const std::vector<ReplaceableEntry*> entries =
             indexingPolicy->getPossibleEntries(addr);
 
         // Choose replacement victim from replacement candidates
         CacheBlk* victim = static_cast<CacheBlk*>(replacementPolicy->getVictim(
-                                entries));
+                                entries, addr));
 
         // There is only one eviction for this replacement
         evict_blks.push_back(victim);
@@ -189,6 +190,7 @@ class BaseSetAssoc : public BaseTags
      */
     void insertBlock(const PacketPtr pkt, CacheBlk *blk) override
     {
+        // std::cout << "insertBlock inside base_set_assoc.hh\n";
         // Insert block
         BaseTags::insertBlock(pkt, blk);
 
@@ -196,7 +198,7 @@ class BaseSetAssoc : public BaseTags
         stats.tagsInUse++;
 
         // Update replacement policy
-        replacementPolicy->reset(blk->replacementData);
+        replacementPolicy->reset(blk->replacementData, pkt);
     }
 
     /**

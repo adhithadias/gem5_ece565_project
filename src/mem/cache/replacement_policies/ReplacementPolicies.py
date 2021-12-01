@@ -75,6 +75,12 @@ class DIPRP(BaseReplacementPolicy):
         32, "The size of a region containing one sample")
     team_size = Param.Unsigned(
         16, "Number of entries in a sampling set that belong to a team")
+    block_offset = Param.Unsigned(6, "Block offset of an address" )
+    set_offset = Param.Unsigned(1024, "Number of sets in the cache")
+    assoc = Param.Unsigned(
+        16, "Set associativity of the cache or number of ways")
+    num_sets = Param.Unsigned(
+        1024, "Set associativity of the cache or number of ways")
 
 class MRURP(BaseReplacementPolicy):
     type = 'MRURP'

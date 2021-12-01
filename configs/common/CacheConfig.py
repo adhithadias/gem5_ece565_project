@@ -43,10 +43,17 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+import math
 import m5
 from m5.objects import *
 from common.Caches import *
 from common import ObjectList
+
+def Log2(x):
+    return (math.log10(x) / math.log10(2))
+
+def isPowerOfTwo(n):
+    return (math.ceil(Log2(n)) == math.floor(Log2(n)))
 
 def set_cache_repl_policy(options, cache_repl_policy, cache):
     if (cache_repl_policy == "LRURP"):
@@ -61,13 +68,42 @@ def set_cache_repl_policy(options, cache_repl_policy, cache):
         print("initializing DIPRP cache with settings \n constituency:",
               options.cache_constituency_size, ", team_size: ",
               options.cache_team_size)
+
+        if(not(isPowerOfTwo(options.cacheline_size))):
+            print("Cache line size should be a power of 2\n")
+            sys.exit(1)
+        block_offset = int(Log2(options.cacheline_size))
+        print("block_offset: ", block_offset)
+
+        l2_cache_size = int(options.l2_size[0:-2])
+        print("l2 size: ", l2_cache_size)
+
+        if (options.l2_size[-2:] == "kB"):
+            l2_cache_size = l2_cache_size * 1024
+        elif (options.l2_size[-2:] == "MB"):
+            l2_cache_size = l2_cache_size * 1024 * 1024
+        else:
+            print("L2 cache size should be either in kB or MB\n")
+            sys.exit(1)
+
+        num_cachelines = l2_cache_size / options.cacheline_size
+        print("num_cachelines: ", num_cachelines)
+        num_sets = num_cachelines / options.l2_assoc
+        print("num_cache_sets: ", num_sets)
+        set_offset = int(Log2(num_sets))
+        print("set_offset: ", set_offset)
+
         cache.replacement_policy = DIPRP(
             replacement_policy_1=LRURP(),
             replacement_policy_2=BIPRP(
                 btp=options.cache_btp
             ),
             constituency_size=options.cache_constituency_size,
-            team_size=options.cache_team_size
+            team_size=options.cache_team_size, # num sets in a constituency
+            block_offset=block_offset, # int 6 bits
+            set_offset=set_offset, # set offset 10 bits
+            assoc=options.l2_assoc, # int 4 bits
+            num_sets=num_sets # number of cache sets 1024
         )
         # cache.replacement_policy = DIPRP()
     elif (cache_repl_policy == "LFURP"):

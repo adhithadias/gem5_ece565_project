@@ -132,7 +132,7 @@ CompressedTags::findVictim(Addr addr, const bool is_secure,
     if (victim_superblock == nullptr){
         // Choose replacement victim from replacement candidates
         victim_superblock = static_cast<SuperBlk*>(
-            replacementPolicy->getVictim(superblock_entries));
+            replacementPolicy->getVictim(superblock_entries, addr));
 
         // The whole superblock must be evicted to make room for the new one
         for (const auto& blk : victim_superblock->blks){

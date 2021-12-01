@@ -31,7 +31,9 @@
 
 #include <memory>
 
+#include "base/types.hh"
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
+#include "mem/packet.hh"
 #include "params/BaseReplacementPolicy.hh"
 #include "sim/sim_object.hh"
 
@@ -75,6 +77,11 @@ class BaseReplacementPolicy : public SimObject
      * @param replacement_data Replacement data to be touched.
      */
     virtual void touch(const std::shared_ptr<ReplacementData>&
+        replacement_data, const PacketPtr pkt)
+    {
+        touch(replacement_data);
+    };
+    virtual void touch(const std::shared_ptr<ReplacementData>&
                                                 replacement_data) const = 0;
 
     /**
@@ -82,6 +89,11 @@ class BaseReplacementPolicy : public SimObject
      *
      * @param replacement_data Replacement data to be reset.
      */
+    virtual void reset(const std::shared_ptr<ReplacementData>&
+        replacement_data, const PacketPtr pkt)
+    {
+        reset(replacement_data);
+    };
     virtual void reset(const std::shared_ptr<ReplacementData>&
                                                 replacement_data) const = 0;
 
@@ -91,6 +103,12 @@ class BaseReplacementPolicy : public SimObject
      * @param candidates Replacement candidates, selected by indexing policy.
      * @return Replacement entry to be replaced.
      */
+    virtual ReplaceableEntry* getVictim(
+                           const ReplacementCandidates& candidates,
+                           const Addr addr)
+    {
+        return getVictim(candidates);
+    };
     virtual ReplaceableEntry* getVictim(
                            const ReplacementCandidates& candidates) const = 0;
 

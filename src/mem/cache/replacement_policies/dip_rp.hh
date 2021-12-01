@@ -80,8 +80,11 @@ class DIPRP : public BaseReplacementPolicy
         *
         * @param replacement_data Replacement data to be reset.
         */
-        void reset(const std::shared_ptr<ReplacementData>& replacement_data) const
-                                                                        override;       
+        void reset(const std::shared_ptr<ReplacementData>& replacement_data,
+            const PacketPtr pkt) override;
+        void reset(
+            const std::shared_ptr<ReplacementData>& replacement_data) const
+            override;
 
         /**
         * Find replacement victim using LRU timestamps.
@@ -89,8 +92,10 @@ class DIPRP : public BaseReplacementPolicy
         * @param candidates Replacement candidates, selected by indexing policy.
         * @return Replacement entry to be replaced.
         */
-        ReplaceableEntry* getVictim(const ReplacementCandidates& candidates) const
-                                                                        override;
+        ReplaceableEntry* getVictim(const ReplacementCandidates& candidates,
+            const Addr addr) override;
+        ReplaceableEntry* getVictim(
+            const ReplacementCandidates& candidates) const override;
 
 
         /**

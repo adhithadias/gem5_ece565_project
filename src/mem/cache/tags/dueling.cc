@@ -1,9 +1,12 @@
 #include "mem/cache/tags/dueling.hh"
 
+#include <iomanip>
 #include <iostream>
 
 #include "base/bitfield.hh"
 #include "base/logging.hh"
+#include "params/DIPRP.hh"
+#include "sim/sim_object.hh"
 
 unsigned DuelingMonitor::numInstances = 0;
 
@@ -33,11 +36,13 @@ Dueler::isSample(uint64_t id, bool& team) const
 
 DuelingMonitor::DuelingMonitor(std::size_t constituency_size,
     std::size_t team_size, unsigned num_bits, double low_threshold,
-    double high_threshold)
+    double high_threshold, unsigned assoc, unsigned block_offset,
+    unsigned set_offset, unsigned num_sets)
   : id(1 << numInstances), constituencySize(constituency_size),
     teamSize(team_size), lowThreshold(low_threshold),
     highThreshold(high_threshold), selector(num_bits), regionCounter(0),
-    winner(true)
+    winner(true), assoc(assoc), blockOffset(block_offset),
+    setOffset(set_offset), numSets(num_sets), pselLogTick(0)
 {
     fatal_if(constituencySize < (NUM_DUELERS * teamSize),
         "There must be at least team size entries per team in a constituency");
@@ -51,6 +56,8 @@ DuelingMonitor::DuelingMonitor(std::size_t constituency_size,
     numInstances++;
 
     // Start selector around its middle value
+    std::cout << "initializing new dueling monitor instance: " << numInstances
+        << ", id: " << id << ", " << (1<<numInstances) << std::endl;
     selector.saturate();
     selector >>= 1;
     if (selector.calcSaturation() < lowThreshold) {
@@ -59,42 +66,175 @@ DuelingMonitor::DuelingMonitor(std::size_t constituency_size,
 }
 
 void
-DuelingMonitor::sample(const Dueler* dueler)
+DuelingMonitor::sample(const ReplaceableEntry* rd)
 {
     bool team;
+    bool is_sample = isSample(rd, team);
 
     // // uncomment to see how the PSEL changes
-    // std::cout
-    //     // << "saturation: " << selector.calcSaturation()
-    //     << ", " << selector.getCounter()
-    //     // << ", maxVal: " << selector.getMaxVal()
-    //     << ", " << id << ", " << team
-    //     << ", " << dueler->isSample(id, team)
-    //     << std::endl
-    //     ;
+    std::cout
+        // << "saturation: " << selector.calcSaturation()
+        << selector.getCounter()
+        // << ", maxVal: " << selector.getMaxVal()
+        << ", " << id << ", " << team
+        << ", " << is_sample
+        << ", " << curTick()
+        << ", " << winner
+        << std::endl
+        ;
 
-    if (dueler->isSample(id, team)) {
-
-        if (team) {
+    if (is_sample) {
+        if (team) { // a miss in LRU increments the PSEL
             selector++;
 
             if (selector.calcSaturation() >= highThreshold) {
-                winner = true;
+                winner = true; // select BIP policy
             }
         } else {
             selector--;
 
             if (selector.calcSaturation() < lowThreshold) {
-                winner = false;
+                winner = false; // select BIP policy
             }
         }
     }
 }
 
+void
+DuelingMonitor::sample(const Addr addr) {
+    bool team;
+    bool is_sample = isSample(addr, team);
+    uint64_t setIndex = (addr >> blockOffset) & (numSets-1);
+    uint64_t constituencyIndex = setIndex & (constituencySize-1);
+
+    // std::cout << std::hex
+        // << "sample at replace addr: " << addr << std::endl;
+    // std::cout << std::dec;
+
+    Tick t = curTick();
+    if (t-pselLogTick > 100000000) {
+        // std::cout << t << ", " << selector.getCounter() << std::endl;
+        std::cout
+            << t
+            << ", " << selector.getCounter()
+            << ", " << team
+            << ", " << winner
+            << ", " << setIndex
+            << ", " << constituencyIndex
+            << ", " << is_sample
+            << std::endl
+        ;
+        pselLogTick = t;
+    }
+
+    // PSEL counter is the Policy Selector
+    if (is_sample) {
+        if (team) { // a miss in LRU increments the PSEL
+            selector++;
+            if (selector.calcSaturation() >= highThreshold) {
+                // select BIP policy !winner should be selected
+                winner = true;
+            }
+        } else {
+            selector--;
+            if (selector.calcSaturation() < lowThreshold) {
+                // select LRU policy !winner should be selected
+                winner = false;
+            }
+        }
+
+    }
+}
+
 bool
-DuelingMonitor::isSample(const Dueler* dueler, bool& team) const
+DuelingMonitor::isSample(const Addr addr, bool& team)
 {
-    return dueler->isSample(id, team);
+
+    uint64_t shifted = (addr >> blockOffset);
+    uint64_t setIndex = shifted & (numSets-1);
+    uint64_t constituencyIndexMask = constituencySize-1;
+    // uint64_t constituency = setIndex
+        // & (~constituencyIndexMask); // 5 high order bits
+
+    uint64_t constituencyIndex = setIndex
+        & constituencyIndexMask; // 5 low order bits
+    // complement of the 5 low order bits
+    // uint64_t complementaryOfConstituencyIndex =
+        // (~setIndex) & constituencyIndexMask;
+
+    // std::cout << "blockOffset: " << blockOffset << std::endl;
+    // std::cout << "constituencySize: " << constituencySize << std::endl;
+    // std::cout << "teamSize: " << teamSize << std::endl;
+    // // accessed block will be always
+    // // zero because first block addr is sent here
+    // std::cout << "accessed block: " << (addr & blockOffset) << std::endl;
+    // std::cout << std::hex << "addr: " << addr << std::endl;
+    // std::cout << std::hex << "shifted: " << shifted << std::endl;
+
+    // std::cout
+    //     << "addr: " << addr
+    //     << ", set: " << setIndex
+    //     << ", constituencyIndex: " << constituencyIndex
+    //     << std::endl;
+
+    std::cout << std::dec;
+    if (constituencyIndex < teamSize) { // LRU master sets at the begninng
+        team = true;
+        return true;
+    } else if (constituencySize - teamSize <= constituencyIndex) {
+        team = false;
+        return true;
+    }
+
+    // if (constituency == constituencyIndex) {
+    //     // std::cout << "policy 1 set\n";
+    //     team = true;
+    //     return true;
+    // } else if (constituency == complementaryOfConstituencyIndex) {
+    //     // std::cout << "policy 2 set\n";
+    //     team = false;
+    //     return true;
+    // }
+    // std::cout << "not a master set\n";
+
+    return false;
+}
+
+bool
+DuelingMonitor::isSample(const ReplaceableEntry* rd, bool& team) const
+{
+    uint64_t setIndex = rd->getSet();
+    uint64_t constituencyIndexMask = constituencySize-1;
+    // uint64_t constituency = setIndex
+    //     & (~constituencyIndexMask); // 5 high order bits
+
+    uint64_t constituencyIndex = setIndex
+        & constituencyIndexMask; // 5 low order bits
+    // complement of the 5 low order bits
+    // uint64_t complementaryOfConstituencyIndex = (~setIndex)
+    //     & constituencyIndexMask;
+    std::cout << std::dec;
+
+    std::cout << std::dec;
+    if (constituencyIndex < teamSize) { // LRU master sets at the begninng
+        team = true;
+        return true;
+    } else if (constituencySize - teamSize <= constituencyIndex) {
+        team = false;
+        return true;
+    }
+
+    // if (constituency == constituencyIndex) {
+    //     team = true;
+    //     return true;
+    // } else if (constituency == complementaryOfConstituencyIndex) {
+    //     team = false;
+    //     return true;
+    // }
+
+    team = true; // just to initialize the value
+    return false;
+    // return dueler->isSample(id, team);
 }
 
 bool

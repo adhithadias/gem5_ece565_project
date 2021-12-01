@@ -65,6 +65,9 @@ BaseSetAssoc::tagsInit()
 {
     // Initialize all blocks
     for (unsigned blk_index = 0; blk_index < numBlocks; blk_index++) {
+        // should I pass the blockIndex to instantiateEntry method?
+        // to manage constituency
+
         // Locate next cache block
         CacheBlk* blk = &blks[blk_index];
 

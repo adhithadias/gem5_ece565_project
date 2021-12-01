@@ -4,7 +4,10 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "base/compiler.hh"
 #include "base/sat_counter.hh"
+#include "base/statistics.hh"
+#include "mem/cache/replacement_policies/base.hh"
 
 /**
  * A dueler is an entry that may or may not be accounted for sampling.
@@ -23,7 +26,7 @@ class Dueler
   private:
     /**
      * Whether this entry is a sample or a follower. Each bit corresponds
-     * to a different ueling monitor instance. If more than 64 instances
+     * to a different dueling monitor instance. If more than 64 instances
      * are needed this needs to be changed to an array containing the ids
      * being sampled.
      */
@@ -126,6 +129,12 @@ class DuelingMonitor
     /** The team that is currently winning. */
     bool winner;
 
+    const unsigned assoc;
+    const unsigned blockOffset;
+    const unsigned setOffset;
+    const unsigned numSets;
+    uint64_t pselLogTick;
+
   public:
     /**
      * Number of times this class has been instantiated. It is used to assign
@@ -135,7 +144,9 @@ class DuelingMonitor
 
     DuelingMonitor(std::size_t constituency_size, std::size_t team_size = 1,
         unsigned num_bits = 10, double low_threshold = 0.5,
-        double high_threshold = 0.5);
+        double high_threshold = 0.5, unsigned assoc = 16,
+        unsigned block_offset = 6, unsigned set_offset = 10,
+        unsigned num_sets = 1024);
     ~DuelingMonitor() = default;
 
     /**
@@ -144,7 +155,8 @@ class DuelingMonitor
      *
      * @param dueler The selected entry.
      */
-    void sample(const Dueler* dueler);
+    void sample(const ReplaceableEntry* rd);
+    void sample(const Addr addr);
 
     /**
      * Check if the given dueler is a sample for this instance. If so, get its
@@ -154,7 +166,8 @@ class DuelingMonitor
      * @param team Team to which this sampling entry belongs (only 2 possible).
      * @return Whether this is a sampling entry.
      */
-    bool isSample(const Dueler* dueler, bool& team) const;
+    bool isSample(const ReplaceableEntry* rd, bool& team) const;
+    bool isSample(const Addr addr, bool& team);
 
     /**
      * Get the team that is currently winning the duel.
