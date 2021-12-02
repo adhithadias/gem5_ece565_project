@@ -134,7 +134,7 @@ class DuelingMonitor
     const unsigned setOffset;
     const unsigned numSets;
     uint64_t pselLogTick;
-    uint64_t selectorLogCount;
+    uint16_t selectorLogCount;
 
   public:
     /**
