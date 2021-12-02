@@ -114,7 +114,7 @@ DuelingMonitor::sample(const Addr addr) {
     // std::cout << std::dec;
 
     Tick t = curTick();
-    uint64_t s = selector.getCounter();
+    uint16_t s = selector.getCounter();
     if (t-pselLogTick > 100000000 ||
         std::abs(s-selectorLogCount) > 20) {
         // std::cout << t << ", " << selector.getCounter() << std::endl;

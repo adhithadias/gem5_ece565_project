@@ -98,7 +98,7 @@ DIPRP::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
     replacementPolicy1->reset(dip_replacement_data->replacementData1);
     replacementPolicy2->reset(dip_replacement_data->replacementData2);
 
-    duelingMonitor.sample(pkt->getAddr());
+    // duelingMonitor.sample(pkt->getAddr());
     // duelingMonitor.sample(dip_replacement_data.get());
     // duelingMonitor.sample(
     //     static_cast<ReplacementData*>(dip_replacement_data.get()));
