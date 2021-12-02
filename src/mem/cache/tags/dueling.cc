@@ -158,14 +158,14 @@ DuelingMonitor::isSample(const Addr addr, bool& team)
     uint64_t shifted = (addr >> blockOffset);
     uint64_t setIndex = shifted & (numSets-1);
     uint64_t constituencyIndexMask = constituencySize-1;
-    // uint64_t constituency = setIndex
-        // & (~constituencyIndexMask); // 5 high order bits
+    uint64_t constituency = setIndex
+        & (~constituencyIndexMask); // 5 high order bits
 
     uint64_t constituencyIndex = setIndex
         & constituencyIndexMask; // 5 low order bits
     // complement of the 5 low order bits
-    // uint64_t complementaryOfConstituencyIndex =
-        // (~setIndex) & constituencyIndexMask;
+    uint64_t complementaryOfConstituencyIndex =
+        (~setIndex) & constituencyIndexMask;
 
     // std::cout << "blockOffset: " << blockOffset << std::endl;
     // std::cout << "constituencySize: " << constituencySize << std::endl;
@@ -183,25 +183,28 @@ DuelingMonitor::isSample(const Addr addr, bool& team)
     //     << std::endl;
 
     std::cout << std::dec;
-    if (constituencyIndex < teamSize) { // LRU master sets at the begninng
-        team = true;
-        return true;
-    } else if (constituencySize - teamSize <= constituencyIndex) {
-        team = false;
-        return true;
+    if (teamSize == 1 && numSets == 1024 && constituencySize == 32) {
+        if (constituency == constituencyIndex) {
+            // std::cout << "policy 1 set\n";
+            team = true;
+            return true;
+        } else if (constituency == complementaryOfConstituencyIndex) {
+            // std::cout << "policy 2 set\n";
+            team = false;
+            return true;
+        }
+    } else {
+        if (constituencyIndex < teamSize) { // LRU master sets at the begninng
+            team = true;
+            return true;
+        } else if (constituencySize - teamSize <= constituencyIndex) {
+            team = false;
+            return true;
+        }
     }
 
-    // if (constituency == constituencyIndex) {
-    //     // std::cout << "policy 1 set\n";
-    //     team = true;
-    //     return true;
-    // } else if (constituency == complementaryOfConstituencyIndex) {
-    //     // std::cout << "policy 2 set\n";
-    //     team = false;
-    //     return true;
-    // }
     // std::cout << "not a master set\n";
-
+    team = true;
     return false;
 }
 
@@ -210,32 +213,33 @@ DuelingMonitor::isSample(const ReplaceableEntry* rd, bool& team) const
 {
     uint64_t setIndex = rd->getSet();
     uint64_t constituencyIndexMask = constituencySize-1;
-    // uint64_t constituency = setIndex
-    //     & (~constituencyIndexMask); // 5 high order bits
+    uint64_t constituency = setIndex
+        & (~constituencyIndexMask); // 5 high order bits
 
     uint64_t constituencyIndex = setIndex
         & constituencyIndexMask; // 5 low order bits
     // complement of the 5 low order bits
-    // uint64_t complementaryOfConstituencyIndex = (~setIndex)
-    //     & constituencyIndexMask;
+    uint64_t complementaryOfConstituencyIndex = (~setIndex)
+        & constituencyIndexMask;
     std::cout << std::dec;
 
-    std::cout << std::dec;
-    if (constituencyIndex < teamSize) { // LRU master sets at the begninng
-        team = true;
-        return true;
-    } else if (constituencySize - teamSize <= constituencyIndex) {
-        team = false;
-        return true;
+    if (teamSize == 1 && numSets == 1024 && constituencySize == 32) {
+        if (constituency == constituencyIndex) {
+            team = true;
+            return true;
+        } else if (constituency == complementaryOfConstituencyIndex) {
+            team = false;
+            return true;
+        }
+    } else {
+        if (constituencyIndex < teamSize) { // LRU master sets at the begninng
+            team = true;
+            return true;
+        } else if (constituencySize - teamSize <= constituencyIndex) {
+            team = false;
+            return true;
+        }
     }
-
-    // if (constituency == constituencyIndex) {
-    //     team = true;
-    //     return true;
-    // } else if (constituency == complementaryOfConstituencyIndex) {
-    //     team = false;
-    //     return true;
-    // }
 
     team = true; // just to initialize the value
     return false;
