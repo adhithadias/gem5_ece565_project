@@ -6,32 +6,15 @@
 #include "base/compiler.hh"
 #include "base/statistics.hh"
 #include "mem/cache/replacement_policies/base.hh"
+#include "mem/cache/replacement_policies/bip_rp.hh"
 #include "mem/cache/tags/dueling.hh"
 
 struct DIPRPParams;
 
-class DIPRP : public BaseReplacementPolicy
+class DIPRP : public BIPRP
 {
     protected:
         /** DIP-specific implementation of replacement data. */
-        struct DIPReplData : ReplacementData, Dueler
-        {
-            /** Tick on which the entry was last touched. */
-            Tick lastTouchTick;
-            std::shared_ptr<ReplacementData> replacementData1;
-            std::shared_ptr<ReplacementData> replacementData2;
-
-            /**
-            * Default constructor. Invalidate data.
-            */
-            DIPReplData(
-                const std::shared_ptr<ReplacementData>& replacement_data_1,
-                const std::shared_ptr<ReplacementData>& replacement_data_2)
-            :   ReplacementData(), Dueler(),
-                lastTouchTick(0), replacementData1(replacement_data_1),
-                replacementData2(replacement_data_2)
-            {}
-        };
 
         BaseReplacementPolicy* const replacementPolicy1;
         BaseReplacementPolicy* const replacementPolicy2;
@@ -55,23 +38,23 @@ class DIPRP : public BaseReplacementPolicy
         */
         ~DIPRP() {}
 
-        /**
-        * Invalidate replacement data to set it as the next probable victim.
-        * Sets its last touch tick as the starting tick.
-        *
-        * @param replacement_data Replacement data to be invalidated.
-        */
-        void invalidate(const std::shared_ptr<ReplacementData>& replacement_data)
-                                                                const override;
+        // /**
+        // * Invalidate replacement data to set it as the next probable victim.
+        // * Sets its last touch tick as the starting tick.
+        // *
+        // * @param replacement_data Replacement data to be invalidated.
+        // */
+        // void invalidate(const std::shared_ptr<ReplacementData>&
+        //     replacement_data) const override;
 
-        /**
-        * Touch an entry to update its replacement data.
-        * Sets its last touch tick as the current tick.
-        *
-        * @param replacement_data Replacement data to be touched.
-        */
-        void touch(const std::shared_ptr<ReplacementData>& replacement_data) const
-                                                                        override;
+        // /**
+        // * Touch an entry to update its replacement data.
+        // * Sets its last touch tick as the current tick.
+        // *
+        // * @param replacement_data Replacement data to be touched.
+        // */
+        // void touch(const std::shared_ptr<ReplacementData>&
+        //     replacement_data) const override;
 
 
         /**
@@ -86,24 +69,25 @@ class DIPRP : public BaseReplacementPolicy
             const std::shared_ptr<ReplacementData>& replacement_data) const
             override;
 
-        /**
-        * Find replacement victim using LRU timestamps.
-        *
-        * @param candidates Replacement candidates, selected by indexing policy.
-        * @return Replacement entry to be replaced.
-        */
-        ReplaceableEntry* getVictim(const ReplacementCandidates& candidates,
-            const Addr addr) override;
-        ReplaceableEntry* getVictim(
-            const ReplacementCandidates& candidates) const override;
+        // /**
+        // * Find replacement victim using LRU timestamps.
+        // *
+        // * @param candidates Replacement candidates,
+        // * selected by indexing policy.
+        // * @return Replacement entry to be replaced.
+        // */
+        // ReplaceableEntry* getVictim(const ReplacementCandidates& candidates,
+        //     const Addr addr) override;
+        // ReplaceableEntry* getVictim(
+        //     const ReplacementCandidates& candidates) const override;
 
 
-        /**
-        * Instantiate a replacement data entry.
-        *
-        * @return A shared pointer to the new replacement data.
-        */
-        std::shared_ptr<ReplacementData> instantiateEntry() override;
+        // /**
+        // * Instantiate a replacement data entry.
+        // *
+        // * @return A shared pointer to the new replacement data.
+        // */
+        // std::shared_ptr<ReplacementData> instantiateEntry() override;
 
 };
 

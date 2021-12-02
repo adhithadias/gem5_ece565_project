@@ -62,7 +62,7 @@ class BIPRP(LRURP):
 class LIPRP(BIPRP):
     btp = 0
 
-class DIPRP(BaseReplacementPolicy):
+class DIPRP(BIPRP):
     type = 'DIPRP'
     cxx_class = 'DIPRP'
     cxx_header = "mem/cache/replacement_policies/dip_rp.hh"
