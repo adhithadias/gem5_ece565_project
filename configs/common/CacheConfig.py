@@ -64,6 +64,60 @@ def set_cache_repl_policy(options, cache_repl_policy, cache):
         cache.replacement_policy = BIPRP(
             btp=options.cache_btp
         )
+    elif (cache_repl_policy == "SRRIPRP"):
+        cache.replacement_policy = RRIPRP(
+            num_bits=options.cache_num_bits
+        )
+    elif (cache_repl_policy == "BRRIPRP"):
+        cache.replacement_policy = BRRIPRP(
+            btp=options.cache_btp,
+            num_bits=options.cache_num_bits
+        )
+    elif (cache_repl_policy == "DRRIPRP"):
+        print("initializing DRRIP cache with settings \n constituency:",
+              options.cache_constituency_size, ", team_size: ",
+              options.cache_team_size)
+
+        if(not(isPowerOfTwo(options.cacheline_size))):
+            print("Cache line size should be a power of 2\n")
+            sys.exit(1)
+        block_offset = int(Log2(options.cacheline_size))
+        print("block_offset: ", block_offset)
+
+        l2_cache_size = int(options.l2_size[0:-2])
+        print("l2 size: ", l2_cache_size)
+
+        if (options.l2_size[-2:] == "kB"):
+            l2_cache_size = l2_cache_size * 1024
+        elif (options.l2_size[-2:] == "MB"):
+            l2_cache_size = l2_cache_size * 1024 * 1024
+        else:
+            print("L2 cache size should be either in kB or MB\n")
+            sys.exit(1)
+
+        num_cachelines = l2_cache_size / options.cacheline_size
+        print("num_cachelines: ", num_cachelines)
+        num_sets = num_cachelines / options.l2_assoc
+        print("num_cache_sets: ", num_sets)
+        set_offset = int(Log2(num_sets))
+        print("set_offset: ", set_offset)
+
+        cache.replacement_policy = DIPRP(
+            replacement_policy_1=RRIPRP(
+                num_bits=options.cache_num_bits
+            ),
+            replacement_policy_2=BRRIPRP(
+                btp=options.cache_btp,
+                num_bits=options.cache_num_bits
+            ),
+            constituency_size=options.cache_constituency_size,
+            team_size=options.cache_team_size, # num sets in a constituency
+            block_offset=block_offset, # int 6 bits
+            set_offset=set_offset, # set offset 10 bits
+            assoc=options.l2_assoc, # int 4 bits
+            num_sets=num_sets # number of cache sets 1024
+        )
+        # cache.replacement_policy = DIPRP()
     elif (cache_repl_policy == "DIPRP"):
         print("initializing DIPRP cache with settings \n constituency:",
               options.cache_constituency_size, ", team_size: ",
@@ -136,9 +190,11 @@ def config_cache(options, system):
             print("O3_ARM_v7a_3 is unavailable. Did you compile the O3 model?")
             sys.exit(1)
 
-        dcache_class, icache_class, l2_cache_class, walk_cache_class = \
+        dcache_class, icache_class, l2_cache_class,
+            l3_cache_class, walk_cache_class = \
             core.O3_ARM_v7a_DCache, core.O3_ARM_v7a_ICache, \
             core.O3_ARM_v7aL2, \
+            L3Cache, \
             core.O3_ARM_v7aWalkCache
     elif options.cpu_type == "HPI":
         try:
@@ -150,8 +206,9 @@ def config_cache(options, system):
         dcache_class, icache_class, l2_cache_class, walk_cache_class = \
             core.HPI_DCache, core.HPI_ICache, core.HPI_L2, core.HPI_WalkCache
     else:
-        dcache_class, icache_class, l2_cache_class, walk_cache_class = \
-            L1_DCache, L1_ICache, L2Cache, None
+        dcache_class, icache_class, l2_cache_class,
+        l3_cache_class, walk_cache_class = \
+            L1_DCache, L1_ICache, L2Cache, L3Cache, None
 
         if buildEnv['TARGET_ISA'] in ['x86', 'riscv']:
             walk_cache_class = PageTableWalkerCache
@@ -166,8 +223,35 @@ def config_cache(options, system):
     if options.l2cache and options.elastic_trace_en:
         fatal("When elastic trace is enabled, do not configure L2 caches.")
 
+    if options.l2cache and options.l3cache:
+        system.l2 = l2_cache_class(clk_domain=system.cpu_clk_domain,
+                                   size=options.l2_size,
+                                   assoc=options.l2_assoc)
+        set_cache_repl_policy(options, "LRURP", system.l2)
 
-    if options.l2cache:
+        system.l3 = l3_cache_class(clk_domain=system.cpu_clk_domain,
+                                    size=options.l3_size,
+                                    assoc=options.l3_assoc)
+        set_cache_repl_policy(options, options.cache_repl, system.l3)
+
+        system.tol2bus = L2XBar(clk_domain = system.cpu_clk_domain)
+        system.tol3bus = L3XBar(clk_domain = system.cpu_clk_domain)
+        system.l2.cpu_side = system.tol2bus.master
+        system.l2.mem_side = system.tol3bus.slave
+        system.l3.cpu_side = system.tol3bus.master
+        system.l3.mem_side = system.membus.slave
+
+        if options.l2_hwp_type:
+            hwpClass = ObjectList.hwp_list.get(options.l2_hwp_type)
+            if system.l2.prefetcher != "Null":
+                print("Warning: l2-hwp-type is set (", hwpClass, "), but",
+                      "the current l2 has a default Hardware Prefetcher",
+                      "of type", type(system.l2.prefetcher), ", using the",
+                      "specified by the flag option.")
+            system.l2.prefetcher = hwpClass()
+
+
+    elif options.l2cache:
         # Provide a clock for the L2 and the L1-to-L2 bus here as they
         # are not connected using addTwoLevelCacheHierarchy. Use the
         # same clock as the CPUs.

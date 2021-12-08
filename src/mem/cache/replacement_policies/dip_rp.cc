@@ -131,16 +131,16 @@ DIPRP::getVictim(const ReplacementCandidates& candidates, const Addr addr)
     is_sample = duelingMonitor.isSample(candidates[0], team);
 
     bool team_a;
-    // if ((is_sample && !team) || (!is_sample && !winner)) {
-    //     team_a = true;
-    // } else {
-    //     team_a = false;
-    // }
-    if (is_sample) {
-        team_a = team;
+    if ((is_sample && !team) || (!is_sample && !winner)) {
+        team_a = true;
     } else {
-        team_a = winner;
+        team_a = false;
     }
+    // if (is_sample) {
+    //     team_a = team;
+    // } else {
+    //     team_a = winner;
+    // }
     // std::cout << "team: " << team_a << std::endl;
     // if (is_sample) {
     //     team_a = !team;

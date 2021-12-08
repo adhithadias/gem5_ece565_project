@@ -123,6 +123,7 @@ def addNoISAOptions(parser):
                       help="use external port for SystemC TLM cosimulation")
     parser.add_option("--caches", action="store_true")
     parser.add_option("--l2cache", action="store_true")
+    parser.add_option("--l3cache", action="store_true")
     parser.add_option("--num-dirs", type="int", default=1)
     parser.add_option("--num-l2caches", type="int", default=1)
     parser.add_option("--num-l3caches", type="int", default=1)
@@ -146,6 +147,8 @@ def addNoISAOptions(parser):
     parser.add_option("--cache_btp", type="int", default=3,
                       help="Percentage of blocks to be inserted as MRU "
                       "for bimodal insertion policy")
+    parser.add_option("--cache_num_bits", type="int", default=2,
+                      help="RRIP cache policy counter number of bits")
 
     # Enable Ruby
     parser.add_option("--ruby", action="store_true")
