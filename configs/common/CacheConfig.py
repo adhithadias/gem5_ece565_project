@@ -63,9 +63,11 @@ def config_cache(options, system):
             print("O3_ARM_v7a_3 is unavailable. Did you compile the O3 model?")
             sys.exit(1)
 
-        dcache_class, icache_class, l2_cache_class, walk_cache_class = \
+        dcache_class, icache_class, l2_cache_class, \
+        l3_cache_class, walk_cache_class = \
             core.O3_ARM_v7a_DCache, core.O3_ARM_v7a_ICache, \
             core.O3_ARM_v7aL2, \
+            L3Cache, \
             core.O3_ARM_v7aWalkCache
     elif options.cpu_type == "HPI":
         try:
@@ -77,8 +79,9 @@ def config_cache(options, system):
         dcache_class, icache_class, l2_cache_class, walk_cache_class = \
             core.HPI_DCache, core.HPI_ICache, core.HPI_L2, core.HPI_WalkCache
     else:
-        dcache_class, icache_class, l2_cache_class, walk_cache_class = \
-            L1_DCache, L1_ICache, L2Cache, None
+        dcache_class, icache_class, l2_cache_class, \
+        l3_cache_class, walk_cache_class = \
+            L1_DCache, L1_ICache, L2Cache, L3Cache, None
 
         if buildEnv['TARGET_ISA'] in ['x86', 'riscv']:
             walk_cache_class = PageTableWalkerCache
@@ -101,9 +104,26 @@ def config_cache(options, system):
                                    size=options.l2_size,
                                    assoc=options.l2_assoc)
 
+
+                                #check-- adding l3
+        if options.l3cache:
+            system.l3 = l3_cache_class(clk_domain=system.cpu_clk_domain,
+                                    size=options.l3_size,
+                                    assoc=options.l3_assoc)
+
         system.tol2bus = L2XBar(clk_domain = system.cpu_clk_domain)
+        system.tol3bus = L3XBar(clk_domain = system.cpu_clk_domain)
         system.l2.cpu_side = system.tol2bus.master
-        system.l2.mem_side = system.membus.slave
+        system.l2.mem_side = system.tol3bus.slave
+        system.l3.cpu_side = system.tol3bus.master
+        system.l3.mem_side = system.membus.slave
+
+
+
+        #check -- SHiP
+        #set_cache_repl_policy(options, options.l2_cache_repl, system.l2)
+        set_cache_repl_policy(options, options.l3_cache_repl, system.l3)
+
         if options.l2_hwp_type:
             hwpClass = ObjectList.hwp_list.get(options.l2_hwp_type)
             if system.l2.prefetcher != "Null":
@@ -113,15 +133,19 @@ def config_cache(options, system):
                       "specified by the flag option.")
             system.l2.prefetcher = hwpClass()
 
+
+
     if options.memchecker:
         system.memchecker = MemChecker()
 
     for i in range(options.num_cpus):
         if options.caches:
             icache = icache_class(size=options.l1i_size,
-                                  assoc=options.l1i_assoc)
+                                  assoc=options.l1i_assoc,
+                                  clusivity='mostly_excl')
             dcache = dcache_class(size=options.l1d_size,
-                                  assoc=options.l1d_assoc)
+                                  assoc=options.l1d_assoc,
+                                  clusivity='mostly_excl')
 
             # If we have a walker cache specified, instantiate two
             # instances here
@@ -223,3 +247,33 @@ def ExternalCacheFactory(port_type):
         return ExternalCache(port_data=name, port_type=port_type,
                              addr_ranges=[AllMemory])
     return make
+
+#check -- adding
+def set_cache_repl_policy(options, cache_repl_policy, cache):
+    if (cache_repl_policy == "LRURP"):
+        cache.replacement_policy = LRURP()
+    elif (cache_repl_policy == "LIPRP"):
+        cache.replacement_policy = LIPRP()
+    elif (cache_repl_policy == "BIPRP"):
+        cache.replacement_policy = BIPRP(
+            btp=options.cache_btp
+        )
+    elif (cache_repl_policy == "SHIPRP"):
+        print("initializing SHIPRP for L3")
+        cache.replacement_policy = SHIPRP()
+
+
+    elif (cache_repl_policy == "LFURP"):
+        cache.replacement_policy = LRURP()
+    elif (cache_repl_policy == "FIFORP"):
+        cache.replacement_policy = FIFORP()
+    elif (cache_repl_policy == "MRURP"):
+        cache.replacement_policy = MRURP()
+    elif (cache_repl_policy == "RandomRP"):
+        cache.replacement_policy = RandomRP()
+    else:
+        print("Other cache replacement policies "
+            "are not supported for execution "
+            "input one of LRURP, LIPRP, BIPRP, DIPRP, "
+            "LFURP, FIFORP, MRURP, or RandomRP")
+        sys.exit(1)

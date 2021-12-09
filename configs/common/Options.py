@@ -106,7 +106,7 @@ def addNoISAOptions(parser):
     parser.add_option("--mem-ranks", type="int", default=None,
                       help = "number of memory ranks per channel")
     parser.add_option("--mem-size", action="store", type="string",
-                      default="512MB",
+                      default="4GB",
                       help="Specify the physical memory size (single memory)")
     parser.add_option("--enable-dram-powerdown", action="store_true",
                        help="Enable low-power states in DRAMCtrl")
@@ -123,18 +123,31 @@ def addNoISAOptions(parser):
                       help="use external port for SystemC TLM cosimulation")
     parser.add_option("--caches", action="store_true")
     parser.add_option("--l2cache", action="store_true")
+    parser.add_option("--l3cache", action="store_true")
     parser.add_option("--num-dirs", type="int", default=1)
     parser.add_option("--num-l2caches", type="int", default=1)
     parser.add_option("--num-l3caches", type="int", default=1)
-    parser.add_option("--l1d_size", type="string", default="64kB")
+    parser.add_option("--l1d_size", type="string", default="32kB")
     parser.add_option("--l1i_size", type="string", default="32kB")
-    parser.add_option("--l2_size", type="string", default="2MB")
-    parser.add_option("--l3_size", type="string", default="16MB")
-    parser.add_option("--l1d_assoc", type="int", default=2)
-    parser.add_option("--l1i_assoc", type="int", default=2)
+    parser.add_option("--l2_size", type="string", default="256kB")
+    parser.add_option("--l3_size", type="string", default="1MB")
+    parser.add_option("--l1d_assoc", type="int", default=4)
+    parser.add_option("--l1i_assoc", type="int", default=4)
     parser.add_option("--l2_assoc", type="int", default=8)
     parser.add_option("--l3_assoc", type="int", default=16)
-    parser.add_option("--cacheline_size", type="int", default=64)
+    parser.add_option("--cacheline_size",
+                    type="int", default=64)
+
+    #check -- SHiP
+    parser.add_option("--l2_cache_repl",
+                    type="string", default="LRURP",
+                  help="""set cache replacement policy.
+                  choose from LRURP, BIPRP, DIPRP, SHIP""")
+    parser.add_option("--l3_cache_repl",
+                    type="string", default="SHIPRP",
+                  help="""set cache replacement policy.
+                  choose from LRURP, BIPRP, DIPRP, SHIP""")
+
 
     # Enable Ruby
     parser.add_option("--ruby", action="store_true")
@@ -341,8 +354,9 @@ def addCommonOptions(parser):
 
     # Fastforwarding and simpoint related materials
     parser.add_option("-W", "--warmup-insts", action="store", type="int",
-        default=None,
-        help="Warmup period in total instructions (requires --standard-switch)")
+        default=50000000,
+        help="""Warmup period in total instructions
+        (requires --standard-switch)""")
     parser.add_option("--bench", action="store", type="string", default=None,
         help="base names for --take-checkpoint and --checkpoint-restore")
     parser.add_option("-F", "--fast-forward", action="store", type="string",

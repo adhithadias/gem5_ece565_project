@@ -89,6 +89,15 @@ class NRURP(BRRIPRP):
     btp = 100
     num_bits = 1
 
+#For SHiP -- check
+class SHIPRP(BRRIPRP):
+    type = 'SHIPRP'
+    cxx_class = 'SHIPRP'
+    cxx_header = "mem/cache/replacement_policies/ship_rp.hh"
+    shctSize = Param.Int(16384, "No of SHCT entries")
+    shct_num_bits = Param.Int(3, "No of bits per SHCT entry")
+
+
 class TreePLRURP(BaseReplacementPolicy):
     type = 'TreePLRURP'
     cxx_class = 'TreePLRURP'

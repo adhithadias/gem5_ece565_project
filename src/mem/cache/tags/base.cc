@@ -88,6 +88,7 @@ BaseTags::findBlock(Addr addr, bool is_secure) const
         CacheBlk* blk = static_cast<CacheBlk*>(location);
         if ((blk->tag == tag) && blk->isValid() &&
             (blk->isSecure() == is_secure)) {
+            blk->replacementData->outcome = true;
             return blk;
         }
     }
@@ -112,6 +113,16 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     // Insert block with tag, src master id and task id
     blk->insert(extractTag(pkt->getAddr()), pkt->isSecure(), master_id,
                 pkt->req->taskId());
+               
+    //SHIP --CHECK
+    //Init signature, outcome
+    blk->replacementData->signature_m = (pkt->getAddr()) >> 18;
+    
+    /*if(pkt->req->hasPC())
+    	blk->replacementData->signature_pc = static_cast<std::size_t>(pkt->req->getPC() % 16384);
+    else
+    	blk->replacementData->signature_pc = 0;*/
+    blk->replacementData->outcome = false;
 
     // Check if cache warm up is done
     if (!warmedUp && stats.tagsInUse.value() >= warmupBound) {
