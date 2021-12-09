@@ -38,7 +38,17 @@
  * The replacement data needed by replacement policies. Each replacement policy
  * should have its own implementation of replacement data.
  */
-struct ReplacementData {};
+struct ReplacementData {
+        //Cache block mem signature
+                                std::size_t signature_m;
+
+                                //Cache block pc signature
+                                //std::size_t signature_pc;
+
+                                //Outcome bit --
+        // only set if block is re-referenced
+                                bool outcome;
+};
 
 /**
  * A replaceable entry is a basic entry in a 2d table-like structure that needs

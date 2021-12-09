@@ -122,6 +122,10 @@ class CacheBlk : public ReplaceableEntry
      */
     Tick tickInserted;
 
+    //SHIP --CHECK
+    //Signature of cache block
+    int signature;
+
   protected:
     /**
      * Represents that the indicated thread context has a "lock" on

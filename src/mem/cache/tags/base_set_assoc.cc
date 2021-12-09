@@ -76,6 +76,9 @@ BaseSetAssoc::tagsInit()
 
         // Associate a replacement data entry to the block
         blk->replacementData = replacementPolicy->instantiateEntry();
+        
+        //chceckk init outcome
+        blk->replacementData->outcome = false;
     }
 }
 

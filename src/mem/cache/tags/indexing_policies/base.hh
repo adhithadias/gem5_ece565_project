@@ -134,6 +134,7 @@ class BaseIndexingPolicy : public SimObject
      * @return The tag of the address.
      */
     virtual Addr extractTag(const Addr addr) const;
+        
 
     /**
      * Find all possible entries for insertion and replacement of an address.

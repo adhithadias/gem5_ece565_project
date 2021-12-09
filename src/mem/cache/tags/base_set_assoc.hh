@@ -192,6 +192,10 @@ class BaseSetAssoc : public BaseTags
         // Insert block
         BaseTags::insertBlock(pkt, blk);
 
+				//SHIP -- CHECK DEBUG
+				//DPRINTF(Cache, "Signature: %#x\n", blk->replacementData->signature_m);
+        DPRINTF(Cache, "Outcome: %d\n", blk->replacementData->outcome);
+        
         // Increment tag counter
         stats.tagsInUse++;
 

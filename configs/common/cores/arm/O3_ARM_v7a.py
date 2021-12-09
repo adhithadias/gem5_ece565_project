@@ -103,8 +103,8 @@ class O3_ARM_v7a_BP(BiModeBP):
     instShiftAmt = 2
 
 class O3_ARM_v7a_3(DerivO3CPU):
-    LQEntries = 16
-    SQEntries = 16
+    LQEntries = 32
+    SQEntries = 32
     LSQDepCheckShift = 0
     LFSTSize = 1024
     SSITSize = 1024
@@ -127,7 +127,7 @@ class O3_ARM_v7a_3(DerivO3CPU):
     renameToIEWDelay = 1
     issueToExecuteDelay = 1
     dispatchWidth = 6
-    issueWidth = 8
+    issueWidth = 4
     wbWidth = 8
     fuPool = O3_ARM_v7a_FUP()
     iewToCommitDelay = 1
@@ -140,7 +140,7 @@ class O3_ARM_v7a_3(DerivO3CPU):
     numPhysIntRegs = 128
     numPhysFloatRegs = 192
     numPhysVecRegs = 48
-    numIQEntries = 32
+    numIQEntries = 40
     numROBEntries = 40
 
     switched_out = False
@@ -161,9 +161,9 @@ class O3_ARM_v7a_ICache(Cache):
 
 # Data Cache
 class O3_ARM_v7a_DCache(Cache):
-    tag_latency = 2
-    data_latency = 2
-    response_latency = 2
+    tag_latency = 3
+    data_latency = 3
+    response_latency = 3
     mshrs = 6
     tgts_per_mshr = 8
     size = '32kB'
@@ -194,7 +194,7 @@ class O3_ARM_v7aL2(Cache):
     response_latency = 12
     mshrs = 16
     tgts_per_mshr = 8
-    size = '1MB'
+    size = '256kB'
     assoc = 16
     write_buffers = 8
     prefetch_on_access = True

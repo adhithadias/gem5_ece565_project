@@ -97,3 +97,5 @@ BaseIndexingPolicy::extractTag(const Addr addr) const
 {
     return (addr >> tagShift);
 }
+
+
