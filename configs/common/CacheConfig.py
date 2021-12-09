@@ -114,7 +114,7 @@ def set_cache_repl_policy(options, cache_repl_policy, cache):
             team_size=options.cache_team_size, # num sets in a constituency
             block_offset=block_offset, # int 6 bits
             set_offset=set_offset, # set offset 10 bits
-            assoc=options.l2_assoc, # int 4 bits
+            assoc=options.l3_assoc, # int 4 bits
             num_sets=num_sets # number of cache sets 1024
         )
         # cache.replacement_policy = DIPRP()
@@ -190,7 +190,7 @@ def config_cache(options, system):
             print("O3_ARM_v7a_3 is unavailable. Did you compile the O3 model?")
             sys.exit(1)
 
-        dcache_class, icache_class, l2_cache_class,
+        dcache_class, icache_class, l2_cache_class, \
             l3_cache_class, walk_cache_class = \
             core.O3_ARM_v7a_DCache, core.O3_ARM_v7a_ICache, \
             core.O3_ARM_v7aL2, \
@@ -206,7 +206,7 @@ def config_cache(options, system):
         dcache_class, icache_class, l2_cache_class, walk_cache_class = \
             core.HPI_DCache, core.HPI_ICache, core.HPI_L2, core.HPI_WalkCache
     else:
-        dcache_class, icache_class, l2_cache_class,
+        dcache_class, icache_class, l2_cache_class, \
         l3_cache_class, walk_cache_class = \
             L1_DCache, L1_ICache, L2Cache, L3Cache, None
 
