@@ -123,18 +123,32 @@ def addNoISAOptions(parser):
                       help="use external port for SystemC TLM cosimulation")
     parser.add_option("--caches", action="store_true")
     parser.add_option("--l2cache", action="store_true")
+    parser.add_option("--l3cache", action="store_true")
     parser.add_option("--num-dirs", type="int", default=1)
     parser.add_option("--num-l2caches", type="int", default=1)
     parser.add_option("--num-l3caches", type="int", default=1)
     parser.add_option("--l1d_size", type="string", default="64kB")
     parser.add_option("--l1i_size", type="string", default="32kB")
-    parser.add_option("--l2_size", type="string", default="2MB")
+    parser.add_option("--l2_size", type="string", default="1MB")
     parser.add_option("--l3_size", type="string", default="16MB")
     parser.add_option("--l1d_assoc", type="int", default=2)
     parser.add_option("--l1i_assoc", type="int", default=2)
     parser.add_option("--l2_assoc", type="int", default=8)
     parser.add_option("--l3_assoc", type="int", default=16)
     parser.add_option("--cacheline_size", type="int", default=64)
+    parser.add_option("--cache_repl", type="string", default="LRURP",
+                      help="set cache replacement policy. choose from "
+                      "LRURP, BIPRP, DIPRP")
+    parser.add_option("--cache_constituency_size", type="int", default=32,
+                      help="set dynamic insertion policy cache constituency "
+                      "size")
+    parser.add_option("--cache_team_size", type="int", default=32,
+                      help="set dynamic insertion policy cache team size")
+    parser.add_option("--cache_btp", type="int", default=3,
+                      help="Percentage of blocks to be inserted as MRU "
+                      "for bimodal insertion policy")
+    parser.add_option("--cache_num_bits", type="int", default=2,
+                      help="RRIP cache policy counter number of bits")
 
     # Enable Ruby
     parser.add_option("--ruby", action="store_true")

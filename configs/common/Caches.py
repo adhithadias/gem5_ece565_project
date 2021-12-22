@@ -51,9 +51,9 @@ from m5.objects import *
 
 class L1Cache(Cache):
     assoc = 2
-    tag_latency = 2
-    data_latency = 2
-    response_latency = 2
+    tag_latency = 3
+    data_latency = 3
+    response_latency = 3
     mshrs = 4
     tgts_per_mshr = 20
 
@@ -66,13 +66,23 @@ class L1_DCache(L1Cache):
     pass
 
 class L2Cache(Cache):
-    assoc = 8
-    tag_latency = 20
-    data_latency = 20
+    assoc = 16
+    tag_latency = 12
+    data_latency = 12
+    response_latency = 12
+    mshrs = 20
+    tgts_per_mshr = 12
+    write_buffers = 8
+
+class L3Cache(Cache): #l3cache
+    assoc = 16
+    tag_latency = 12
+    data_latency = 12
     response_latency = 20
     mshrs = 20
     tgts_per_mshr = 12
     write_buffers = 8
+
 
 class IOCache(Cache):
     assoc = 8

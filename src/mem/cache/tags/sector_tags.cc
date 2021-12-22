@@ -77,6 +77,7 @@ SectorTags::tagsInit()
         SectorBlk* sec_blk = &secBlks[sec_blk_index];
 
         // Associate a replacement data entry to the sector
+        // sec_blk_index should I pass this one for setting the constituency
         sec_blk->replacementData = replacementPolicy->instantiateEntry();
 
         // Initialize all blocks in this sector
@@ -126,6 +127,7 @@ SectorTags::invalidate(CacheBlk *blk)
         // Decrease the number of tags in use
         stats.tagsInUse--;
 
+        // invalidate
         // Invalidate replacement data, as we're invalidating the sector
         replacementPolicy->invalidate(sector_blk->replacementData);
     }
@@ -159,6 +161,7 @@ SectorTags::accessBlock(Addr addr, bool is_secure, Cycles &lat)
 
         // Update replacement data of accessed block, which is shared with
         // the whole sector it belongs to
+        // touch
         replacementPolicy->touch(sector_blk->replacementData);
     }
 
@@ -175,17 +178,23 @@ SectorTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     SectorSubBlk* sub_blk = static_cast<SectorSubBlk*>(blk);
     const SectorBlk* sector_blk = sub_blk->getSectorBlock();
 
+    // this is where the insertion happens
+    // lf the block is valid tick is touched
+    // if it's not valid it's reset
+
     // When a block is inserted, the tag is only a newly used tag if the
     // sector was not previously present in the cache.
     if (sector_blk->isValid()) {
         // An existing entry's replacement data is just updated
-        replacementPolicy->touch(sector_blk->replacementData);
+        // touch - just update existing data
+        replacementPolicy->touch(sector_blk->replacementData, pkt);
     } else {
         // Increment tag counter
         stats.tagsInUse++;
 
         // A new entry resets the replacement data
-        replacementPolicy->reset(sector_blk->replacementData);
+        // reset - new data is inserted due to a miss
+        replacementPolicy->reset(sector_blk->replacementData, pkt);
     }
 
     // Do common block insertion functionality
@@ -242,8 +251,9 @@ SectorTags::findVictim(Addr addr, const bool is_secure, const std::size_t size,
     // If the sector is not present
     if (victim_sector == nullptr){
         // Choose replacement victim from replacement candidates
+        // get victim
         victim_sector = static_cast<SectorBlk*>(replacementPolicy->getVictim(
-                                                sector_entries));
+                                                sector_entries, addr));
     }
 
     // Get the entry of the victim block within the sector

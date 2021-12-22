@@ -141,3 +141,26 @@ class L2Cache(PrefetchCache):
 
     def connectMemSideBus(self, bus):
         self.mem_side = bus.slave
+
+
+class L3Cache(PrefetchCache):
+    """Simple L2 Cache with default values"""
+
+    # Default parameters
+    size = '1MB'
+    assoc = 16
+    tag_latency = 10
+    data_latency = 10
+    response_latency = 1
+    mshrs = 20
+    tgts_per_mshr = 12
+    writeback_clean = True
+
+    def __init__(self, opts=None):
+        super(L2Cache, self).__init__(opts)
+
+    def connectCPUSideBus(self, bus):
+        self.cpu_side = bus.master
+
+    def connectMemSideBus(self, bus):
+        self.mem_side = bus.slave

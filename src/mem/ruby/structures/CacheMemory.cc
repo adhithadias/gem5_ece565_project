@@ -334,7 +334,7 @@ CacheMemory::cacheProbe(Addr address) const
                                                        m_cache[cacheSet][i]));
     }
     return m_cache[cacheSet][m_replacementPolicy_ptr->
-                        getVictim(candidates)->getWay()]->m_Address;
+                        getVictim(candidates, address)->getWay()]->m_Address;
 }
 
 // looks an address up in the cache

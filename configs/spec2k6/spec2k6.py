@@ -43,7 +43,7 @@ from m5.objects import *
 
 m5.util.addToPath('../common')
 
-bench_dir='/home/min/a/ece565/benchspec-2020/CPU2006/'
+bench_dir='/home/min/a/kadhitha/workspace/ece565/benchspec-2020/CPU2006/'
 ### Note: That some benchmarks require this variable to be modified to match
 ### your home environment. This variable only applies for certain benchmarks
 ### that require read/write to an output directory
